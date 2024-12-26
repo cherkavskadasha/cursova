@@ -1,0 +1,49 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container min-vh-100 d-flex align-items-center justify-content-center bg-light">
+    <div class="card shadow-lg border-0" style="width: 400px;">
+        <div class="card-body p-4">
+            <h3 class="text-center" style="color: rgba(86, 127, 125, 1); font-weight: bold;">Вітаємо</h3>
+            <form method="post" asp-action="Login">
+                <div class="mb-3">
+                    <label for="username" class="form-label" style="font-weight: 600;">Нікнейм</label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Введіть нікнейм" required />
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label" style="font-weight: 600;">Пароль</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Введіть пароль" required />
+                </div>
+                <button type="submit" class="btn btn-primary w-100" style="background-color: rgba(86, 127, 125, 1); border: none; font-size: 16px; border-radius: 5px; padding: 10px 20px;">Увійти як адміністратор</button>
+            </form>
+            <a asp-action="NOLogin" class="btn btn-outline-primary w-100 mt-3" style="font-size: 16px; border-radius: 5px;">Зайти як відвідувач</a>
+
+            @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+            {
+                <div class="alert alert-danger text-center mt-3" style="font-size: 16px; background-color: #f8d7da; border-color: #f5c6cb;">@ViewBag.ErrorMessage</div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-primary {
+        background-color: rgba(86, 127, 125, 1);
+        border: none;
+    }
+
+        .btn-primary:hover {
+            background-color: #6c847d;
+        }
+
+    .btn-outline-primary {
+        border-color: rgba(86, 127, 125, 1);
+        color: rgba(86, 127, 125, 1);
+    }
+
+        .btn-outline-primary:hover {
+            background-color: rgba(86, 127, 125, 1);
+            color: white;
+        }
+</style>

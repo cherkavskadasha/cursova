@@ -1,0 +1,110 @@
+﻿@model IEnumerable<CafeBase.Models.MenuItem>
+
+@{
+    ViewData["Title"] = "Menu";
+}
+
+<div class="header">
+    <h1>Меню</h1>
+    @if (User.IsInRole("admini"))
+    {
+        <p>
+            <a asp-action="Create" class="btn btn-create">Створити нову позицію</a>
+        </p>
+    }
+</div>
+
+<div class="card-container">
+    @foreach (var item in Model)
+    {
+        <div class="card">
+            <div class="card-content">
+                <img src="@item.Img" />
+                <p><strong>Назва:</strong> @Html.DisplayFor(modelItem => item.Name)</p>
+                <p><strong>Категорія:</strong> @Html.DisplayFor(modelItem => item.Category)</p>
+                <p><strong>Ціна:</strong> @Html.DisplayFor(modelItem => item.Price)</p>
+                <p><strong>Наявність:</strong> @Html.DisplayFor(modelItem => item.IsAvailable)</p>
+            </div>
+            @if (User.IsInRole("admini"))
+            {
+                <div class="card-actions">
+                    <a asp-action="Edit" asp-route-id="@item.ItemId" class="btn btn-edit">Змінити</a>
+                    <a asp-action="Delete" asp-route-id="@item.ItemId" class="btn btn-delete">Видалити</a>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    img {
+        height: 100px;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    .card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 16px;
+        width: 300px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .card-content p {
+        margin: 8px 0;
+        line-height: 1.5;
+    }
+
+    .card-actions {
+        margin-top: 16px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .btn {
+        text-decoration: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 14px;
+        text-align: center;
+    }
+
+    .btn-create {
+        background-color: rgba(86, 127, 125, 1);
+        margin-bottom: 16px;
+        display: inline-block;
+        padding: 10px 16px;
+    }
+
+    .btn-edit {
+        background-color: rgba(86, 127, 125, 1);
+    }
+
+    .btn-details {
+        background-color: rgba(82, 128, 82, 1);
+    }
+
+    .btn-delete {
+        background-color: rgba(118, 82, 82, 1);
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+    }
+</style>

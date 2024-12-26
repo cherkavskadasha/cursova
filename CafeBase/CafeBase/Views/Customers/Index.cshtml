@@ -1,0 +1,97 @@
+﻿@model IEnumerable<CafeBase.Models.Customer>
+
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<h1 class="text-center">Відвідувачі</h1>
+
+<div class="text-center">
+    <a asp-action="Create" class="btn btn-primary">Створити нового відвідувача</a>
+</div>
+
+<form method="post" class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="SearchTerm">Знайти по імені відвідувача:</label>
+                <input type="text" id="SearchTerm" name="SearchTerm" class="form-control" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="Phone">Знайти по номеру телефону:</label>
+                <input type="text" id="Phone" name="Phone" class="form-control" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="Email">Знайти по email:</label>
+                <input type="text" id="Email" name="Email" class="form-control" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="RegistrationDate">Знайти по даті реєстрації:</label>
+                <input type="date" id="RegistrationDate" name="RegistrationDate" class="form-control" />
+            </div>
+        </div>
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">Знайти</button>
+        </div>
+    </div>
+</form>
+
+<div class="row mt-3">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">@item.Name</h5>
+                    <p class="card-text">
+                        <strong>Телефон:</strong> @item.Phone<br>
+                        <strong>Email:</strong> @item.Email<br>
+                        <strong>Дата реєстрації:</strong> @item.RegistrationDate
+                    </p>
+                    <div>
+                        <a asp-action="Edit" asp-route-id="@item.CustomerId" class="btn btn-warning btn-sm">Змінити</a>
+                        <!-- <a asp-action="Details" asp-route-id="@item.CustomerId" class="btn btn-info btn-sm">Details</a> -->
+                        <a asp-action="Delete" asp-route-id="@item.CustomerId" class="btn btn-danger btn-sm">Видалити</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+    <style>
+        .btn-primary {
+            background-color: rgba(86, 127, 125, 1);
+            border: none;
+        }
+
+            .btn-primary:hover {
+                background-color: #6c847d;
+            }
+
+        .btn-warning {
+        background-color: rgba(86, 127, 125, 1);
+        color: #ffffff;
+            border: none;
+        }
+
+            .btn-warning:hover {
+            background-color: #6c847d;
+            }
+
+        .btn-danger {
+        background-color: rgba(118, 82, 82, 1);
+            border: none;
+        }
+
+            .btn-danger:hover {
+                background-color: #c82333;
+            }
+    </style>
+

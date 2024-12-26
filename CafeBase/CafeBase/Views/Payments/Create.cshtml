@@ -1,0 +1,94 @@
+﻿@model CafeBase.Models.Payment
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<div class="container">
+    <h1 class="page-title">Створити</h1>
+    <h4 class="menu-header">Оплата</h4>
+    <div class="form-container">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="OrderId" class="control-label"></label>
+                <select asp-for="OrderId" class="form-control input-large" asp-items="ViewBag.OrderId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="AmountPaid" class="control-label"></label>
+                <input type="number" step="0.01" asp-for="AmountPaid" class="form-control input-large" />
+                <span asp-validation-for="AmountPaid" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PaymentMethod" class="control-label"></label>
+                <input asp-for="PaymentMethod" class="form-control input-large" />
+                <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+            </div>
+            <div class="button-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Повернутись</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+<style>
+    .page-title {
+        color: rgba(86, 127, 125, 1);
+        font-size: 32px;
+        font-weight: bold;
+    }
+
+    .menu-header {
+        font-size: 24px;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    .form-control.input-large {
+        font-size: 16px;
+        height: 45px;
+        width: 40%;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: flex-start;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn {
+        font-size: 16px;
+        border-radius: 5px;
+        padding: 10px 20px;
+        text-decoration: none;
+        color: #fff;
+    }
+
+    .btn-primary {
+        background-color: rgba(86, 127, 125, 1);
+        border: none;
+    }
+
+        .btn-primary:hover {
+            background-color: rgba(70, 105, 104, 1);
+        }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        text-decoration: none;
+    }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+</style>

@@ -1,0 +1,56 @@
+﻿@model IEnumerable<CafeBase.Models.Order>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders for Today</title>
+    <link rel="stylesheet" href="~/css/styles.css"> <!-- If there's a CSS file -->
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Замовлення за сьогоднішній день</h1>
+
+        @if (Model != null && Model.Any())
+        {
+            <table class="table table-bordered table-striped table-hover mt-4">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>ID замовлення</th>
+                        <th>Відвідувач</th>
+                        <th>Дата замовлення</th>
+                        <th>Загальна сума замовлення</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td>@order.OrderId</td>
+                            <td>@order.CustomerId</td>
+                            <td>@order.OrderDate</td>
+                            <td>@order.TotalAmount</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>Халепа... немає замовлень за сьогодні :(</p>
+        }
+    </div>
+
+    <style>
+        .thead-dark {
+            background-color: rgba(86, 127, 125, 1);
+            color: #fff;
+        }
+
+        table {
+            margin-top: 20px;
+        }
+    </style>
+</body>
+</html>

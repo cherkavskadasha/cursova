@@ -27,19 +27,8 @@ namespace CafeBase.Controllers
         // GET: MenuItems/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var menuItem = await _context.MenuItems
-                .FirstOrDefaultAsync(m => m.ItemId == id);
-            if (menuItem == null)
-            {
-                return NotFound();
-            }
-
-            return View(menuItem);
+            var menuItem = await GetMenuItemByIdAsync(id);
+            return menuItem == null ? NotFound() : View(menuItem);
         }
 
         // GET: MenuItems/Create
@@ -49,8 +38,6 @@ namespace CafeBase.Controllers
         }
 
         // POST: MenuItems/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ItemId,Name,Category,Price,IsAvailable,Img")] MenuItem menuItem)
@@ -67,27 +54,16 @@ namespace CafeBase.Controllers
         // GET: MenuItems/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var menuItem = await _context.MenuItems.FindAsync(id);
-            if (menuItem == null)
-            {
-                return NotFound();
-            }
-            return View(menuItem);
+            var menuItem = await GetMenuItemByIdAsync(id);
+            return menuItem == null ? NotFound() : View(menuItem);
         }
 
         // POST: MenuItems/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ItemId,Name,Category,Price,IsAvailable,Img")] MenuItem menuItem)
         {
-            if (id != menuItem.ItemId)
+            if (menuItem == null || id != menuItem.ItemId)
             {
                 return NotFound();
             }
@@ -118,19 +94,8 @@ namespace CafeBase.Controllers
         // GET: MenuItems/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var menuItem = await _context.MenuItems
-                .FirstOrDefaultAsync(m => m.ItemId == id);
-            if (menuItem == null)
-            {
-                return NotFound();
-            }
-
-            return View(menuItem);
+            var menuItem = await GetMenuItemByIdAsync(id);
+            return menuItem == null ? NotFound() : View(menuItem);
         }
 
         // POST: MenuItems/Delete/5
@@ -138,13 +103,20 @@ namespace CafeBase.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var menuItem = await _context.MenuItems.FindAsync(id);
-            if (menuItem != null)
+            try
             {
-                _context.MenuItems.Remove(menuItem);
+                var menuItem = await _context.MenuItems.FindAsync(id);
+                if (menuItem != null)
+                {
+                    _context.MenuItems.Remove(menuItem);
+                    await _context.SaveChangesAsync();
+                }
             }
-
-            await _context.SaveChangesAsync();
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "Помилка видалення. Спробуйте ще раз.");
+                return RedirectToAction(nameof(Index));
+            }
             return RedirectToAction(nameof(Index));
         }
 
@@ -152,5 +124,13 @@ namespace CafeBase.Controllers
         {
             return _context.MenuItems.Any(e => e.ItemId == id);
         }
+
+        private async Task<MenuItem?> GetMenuItemByIdAsync(int? id)
+        {
+            return id == null ? null : await _context.MenuItems.FirstOrDefaultAsync(m => m.ItemId == id);
+        }
     }
+
 }
+
+// 🔥 

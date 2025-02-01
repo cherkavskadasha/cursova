@@ -43,7 +43,7 @@ namespace CafeBase.Controllers
 
         public async Task<IActionResult> PaymentDay()
         {
-            var events = _context.Payments.FromSqlRaw("SELECT \r\n    *, \r\n    (SELECT SUM(AmountPaid) \r\n     FROM Payments \r\n     WHERE CONVERT(date, PaymentDate) = CONVERT(date, GETDATE())) AS TotalAmountPaid\r\nFROM Payments\r\nWHERE CONVERT(date, PaymentDate) = CONVERT(date, GETDATE());\r\n").ToList();
+            var events = _context.Payments.FromSqlRaw("SELECT *, (SELECT SUM(AmountPaid)  FROM Payments  WHERE CONVERT(date, PaymentDate) = CONVERT(date, GETDATE())) AS TotalAmountPaid FROM Payments WHERE CONVERT(date, PaymentDate) = CONVERT(date, GETDATE());").ToList();
             return View(events);
         }
     }

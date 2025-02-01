@@ -21,7 +21,6 @@ namespace CafeBase.Controllers
             _context = context;
         }
 
-        // GET: Orders
         public async Task<IActionResult> Index(OrdersSearch search)
         {
             if (string.IsNullOrEmpty(search.OrderDate) && string.IsNullOrEmpty(search.Customer) && string.IsNullOrEmpty(search.TotalAmount))
@@ -38,7 +37,7 @@ namespace CafeBase.Controllers
                     if (DateTime.TryParse(search.OrderDate, out var orderDate))
                     {
                         sqlQuery.Append(" AND CAST(OrderDate AS DATE) = @OrderDate");
-                        sqlParameters.Add(new SqlParameter("@OrderDate", orderDate.Date)); // Передаємо лише дату, без часу
+                        sqlParameters.Add(new SqlParameter("@OrderDate", orderDate.Date)); 
                     }
                     else
                     {
@@ -60,15 +59,13 @@ namespace CafeBase.Controllers
 
                 var orders = _context.Orders
                     .FromSqlRaw(sqlQuery.ToString(), sqlParameters.ToArray())
-                    .Include(o => o.Customer) // Ensure Customer navigation property is loaded
+                    .Include(o => o.Customer) 
                     .ToList();
 
                 return View(orders);
             }
         }
 
-
-        // GET: Orders/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)

@@ -23,46 +23,32 @@ namespace CafeBase.Controllers
         // GET: Customers
         public async Task<IActionResult> Index(CustomersSearch search)
         {
-            if (string.IsNullOrEmpty(search.SearchTerm) && string.IsNullOrEmpty(search.Phone) && string.IsNullOrEmpty(search.Email) && string.IsNullOrEmpty(search.RegistrationDate))
+            IQueryable<Customer> query = _context.Customers;
+
+            if (!string.IsNullOrEmpty(search?.SearchTerm))
             {
-                return View(await _context.Customers.ToListAsync());
+                query = query.Where(c => c.Name.Contains(search.SearchTerm));
             }
-            else
+
+            if (!string.IsNullOrEmpty(search?.Phone))
             {
-                var sqlQuery = new StringBuilder("SELECT * FROM Customers WHERE 1=1");
-                var sqlParameters = new List<SqlParameter>();
-
-                if (!string.IsNullOrEmpty(search?.SearchTerm))
-                {
-                    sqlQuery.Append(" AND Name LIKE @Name");
-                    sqlParameters.Add(new SqlParameter("@Name", "%" + search?.SearchTerm + "%"));
-                }
-
-                if (!string.IsNullOrEmpty(search?.Phone))
-                {
-                    sqlQuery.Append(" AND Phone LIKE @Phone");
-                    sqlParameters.Add(new SqlParameter("@Phone", "%" + search?.Phone + "%"));
-                }
-
-                if (!string.IsNullOrEmpty(search?.Email))
-                {
-                    sqlQuery.Append(" AND Email LIKE @Email");
-                    sqlParameters.Add(new SqlParameter("@Email", "%" + search?.Email + "%"));
-                }
-
-                if (search?.RegistrationDate != null)
-                {
-                    sqlQuery.Append(" AND RegistrationDate = @RegistrationDate");
-                    sqlParameters.Add(new SqlParameter("@RegistrationDate", search?.RegistrationDate));
-                }
-
-                var events = _context.Customers
-                    .FromSqlRaw(sqlQuery.ToString(), sqlParameters.ToArray())
-                    .ToList();
-
-                return View(events);
+                query = query.Where(c => c.Phone.Contains(search.Phone));
             }
+
+            if (!string.IsNullOrEmpty(search?.Email))
+            {
+                query = query.Where(c => c.Email.Contains(search.Email));
+            }
+
+            if (!string.IsNullOrEmpty(search?.RegistrationDate) && DateTime.TryParse(search.RegistrationDate, out DateTime date))
+            {
+                DateOnly dateOnly = DateOnly.FromDateTime(date); 
+                query = query.Where(c => c.RegistrationDate == dateOnly);
+            }
+
+            return View(await query.ToListAsync());
         }
+
         // GET: Customers/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -71,14 +57,8 @@ namespace CafeBase.Controllers
                 return NotFound();
             }
 
-            var customer = await _context.Customers
-                .FirstOrDefaultAsync(m => m.CustomerId == id);
-            if (customer == null)
-            {
-                return NotFound();
-            }
-
-            return View(customer);
+            var customer = await _context.Customers.FindAsync(id);
+            return customer == null ? NotFound() : View(customer);
         }
 
         // GET: Customers/Create
@@ -88,88 +68,55 @@ namespace CafeBase.Controllers
         }
 
         // POST: Customers/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CustomerId,Name,Phone,Email,RegistrationDate")] Customer customer)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Add(customer);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return View(customer);
             }
-            return View(customer);
+
+            _context.Add(customer);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Customers/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var customer = await _context.Customers.FindAsync(id);
-            if (customer == null)
-            {
-                return NotFound();
-            }
-            return View(customer);
+            return customer == null ? NotFound() : View(customer);
         }
 
         // POST: Customers/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("CustomerId,Name,Phone,Email,RegistrationDate")] Customer customer)
         {
-            if (id != customer.CustomerId)
+            if (id != customer.CustomerId || !ModelState.IsValid)
+            {
+                return View(customer);
+            }
+
+            _context.Update(customer);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException) when (!CustomerExists(customer.CustomerId))
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(customer);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CustomerExists(customer.CustomerId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(customer);
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Customers/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var customer = await _context.Customers
-                .FirstOrDefaultAsync(m => m.CustomerId == id);
-            if (customer == null)
-            {
-                return NotFound();
-            }
-
-            return View(customer);
+            var customer = await _context.Customers.FindAsync(id);
+            return customer == null ? NotFound() : View(customer);
         }
 
         // POST: Customers/Delete/5
@@ -181,15 +128,13 @@ namespace CafeBase.Controllers
             if (customer != null)
             {
                 _context.Customers.Remove(customer);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CustomerExists(int id)
-        {
-            return _context.Customers.Any(e => e.CustomerId == id);
-        }
+        private bool CustomerExists(int id) => _context.Customers.Any(e => e.CustomerId == id);
     }
+
 }

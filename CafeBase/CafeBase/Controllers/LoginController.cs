@@ -17,7 +17,6 @@ namespace CafeBase.Controllers
         {
             var users = new[]
             {
-            new { Username = "1", Password = "1111"},
             new { Username = "admin", Password = "1111"}
             };
 

@@ -28,37 +28,22 @@ namespace CafeBase.Controllers
         // GET: OrderDetails/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var orderDetail = await _context.OrderDetails
-                .Include(o => o.Item)
-                .Include(o => o.Order)
-                .FirstOrDefaultAsync(m => m.OrderDetailId == id);
-            if (orderDetail == null)
-            {
-                return NotFound();
-            }
-
+            var orderDetail = await GetOrderDetailById(id, true);
+            if (orderDetail == null) return NotFound();
             return View(orderDetail);
         }
 
         // GET: OrderDetails/Create
         public IActionResult Create()
         {
-            ViewData["ItemId"] = new SelectList(_context.MenuItems, "ItemId", "ItemId");
-            ViewData["OrderId"] = new SelectList(_context.Orders, "OrderId", "OrderId");
+            PopulateSelectLists();
             return View();
         }
 
         // POST: OrderDetails/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("OrderDetailId,OrderId,ItemId,Quantity,Subtotal")] OrderDetail orderDetail)
+        public async Task<IActionResult> Create([Bind(nameof(OrderDetail.OrderDetailId), nameof(OrderDetail.OrderId), nameof(OrderDetail.ItemId), nameof(OrderDetail.Quantity), nameof(OrderDetail.Subtotal))] OrderDetail orderDetail)
         {
             if (ModelState.IsValid)
             {
@@ -66,40 +51,26 @@ namespace CafeBase.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ItemId"] = new SelectList(_context.MenuItems, "ItemId", "ItemId", orderDetail.ItemId);
-            ViewData["OrderId"] = new SelectList(_context.Orders, "OrderId", "OrderId", orderDetail.OrderId);
+            PopulateSelectLists(orderDetail);
             return View(orderDetail);
         }
 
         // GET: OrderDetails/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var orderDetail = await GetOrderDetailById(id);
+            if (orderDetail == null) return NotFound();
 
-            var orderDetail = await _context.OrderDetails.FindAsync(id);
-            if (orderDetail == null)
-            {
-                return NotFound();
-            }
-            ViewData["ItemId"] = new SelectList(_context.MenuItems, "ItemId", "ItemId", orderDetail.ItemId);
-            ViewData["OrderId"] = new SelectList(_context.Orders, "OrderId", "OrderId", orderDetail.OrderId);
+            PopulateSelectLists(orderDetail);
             return View(orderDetail);
         }
 
         // POST: OrderDetails/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("OrderDetailId,OrderId,ItemId,Quantity,Subtotal")] OrderDetail orderDetail)
+        public async Task<IActionResult> Edit(int id, [Bind(nameof(OrderDetail.OrderDetailId), nameof(OrderDetail.OrderId), nameof(OrderDetail.ItemId), nameof(OrderDetail.Quantity), nameof(OrderDetail.Subtotal))] OrderDetail orderDetail)
         {
-            if (id != orderDetail.OrderDetailId)
-            {
-                return NotFound();
-            }
+            if (id != orderDetail.OrderDetailId) return NotFound();
 
             if (ModelState.IsValid)
             {
@@ -110,39 +81,20 @@ namespace CafeBase.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!OrderDetailExists(orderDetail.OrderDetailId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!OrderDetailExists(orderDetail.OrderDetailId)) return NotFound();
+                    else throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ItemId"] = new SelectList(_context.MenuItems, "ItemId", "ItemId", orderDetail.ItemId);
-            ViewData["OrderId"] = new SelectList(_context.Orders, "OrderId", "OrderId", orderDetail.OrderId);
+            PopulateSelectLists(orderDetail);
             return View(orderDetail);
         }
 
         // GET: OrderDetails/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var orderDetail = await _context.OrderDetails
-                .Include(o => o.Item)
-                .Include(o => o.Order)
-                .FirstOrDefaultAsync(m => m.OrderDetailId == id);
-            if (orderDetail == null)
-            {
-                return NotFound();
-            }
-
+            var orderDetail = await GetOrderDetailById(id, true);
+            if (orderDetail == null) return NotFound();
             return View(orderDetail);
         }
 
@@ -151,13 +103,20 @@ namespace CafeBase.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var orderDetail = await _context.OrderDetails.FindAsync(id);
-            if (orderDetail != null)
+            try
             {
-                _context.OrderDetails.Remove(orderDetail);
+                var orderDetail = await _context.OrderDetails.FindAsync(id);
+                if (orderDetail != null)
+                {
+                    _context.OrderDetails.Remove(orderDetail);
+                    await _context.SaveChangesAsync();
+                }
             }
-
-            await _context.SaveChangesAsync();
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "An error occurred while deleting the record.");
+                return RedirectToAction(nameof(Index));
+            }
             return RedirectToAction(nameof(Index));
         }
 
@@ -165,5 +124,22 @@ namespace CafeBase.Controllers
         {
             return _context.OrderDetails.Any(e => e.OrderDetailId == id);
         }
+
+        private async Task<OrderDetail?> GetOrderDetailById(int? id, bool includeNavigation = false)
+        {
+            if (id == null) return null;
+
+            IQueryable<OrderDetail> query = _context.OrderDetails;
+            if (includeNavigation) query = query.Include(o => o.Item).Include(o => o.Order);
+
+            return await query.FirstOrDefaultAsync(m => m.OrderDetailId == id);
+        }
+
+        private void PopulateSelectLists(OrderDetail? orderDetail = null)
+        {
+            ViewData[nameof(OrderDetail.ItemId)] = new SelectList(_context.MenuItems, nameof(MenuItem.ItemId), nameof(MenuItem.ItemId), orderDetail?.ItemId);
+            ViewData[nameof(OrderDetail.OrderId)] = new SelectList(_context.Orders, nameof(Order.OrderId), nameof(Order.OrderId), orderDetail?.OrderId);
+        }
     }
+
 }
